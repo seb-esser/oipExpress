@@ -23,7 +23,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "GeneratorGrGenMeta.h"
+
+#include "Generator/GeneratorGrGenMeta.h"
+
 
 #include <fstream>
 #include <iostream>

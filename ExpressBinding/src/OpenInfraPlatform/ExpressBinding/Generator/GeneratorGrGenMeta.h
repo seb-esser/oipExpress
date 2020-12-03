@@ -33,7 +33,31 @@ public:
 			for (int j = 0; j < counter; j++)
 			{
 				auto attrName = entity.getAttribute(j).getName();
-				auto attrDataType = entity.getAttribute(j).type.get();
+				auto attrDataType = entity.getAttribute(j).type;
+
+				/*
+				 *for (auto attr : attributes) {
+					if (attr.type->getType() == eEntityAttributeParameterType::TypeNamed) {
+						if (schema.hasEntity(attr.type->toString())) {
+							entityAttributes.insert(attr.type->toString());
+						}
+						if (schema.hasType(attr.type->toString())) {
+							typeAttributes.insert(attr.type->toString());
+						}
+					} else if (attr.type->getType() == eEntityAttributeParameterType::eGeneralizedType) {
+						auto elementType = attr.type;
+						while (elementType->getType() == eEntityAttributeParameterType::eGeneralizedType) {
+							elementType = std::static_pointer_cast<EntityAttributeGeneralizedType>(elementType)->elementType;
+						}
+						if (schema.hasEntity(elementType->toString())) {
+							entityAttributes.insert(elementType->toString());
+						}
+						if (schema.hasType(elementType->toString())) {
+							typeAttributes.insert(elementType->toString());
+						}
+					}
+				}*/
+
 				
 				std::cout << "\t" << attrName << ": " << attrDataType << "\n";				
 			}
