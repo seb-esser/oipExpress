@@ -23,6 +23,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include "GeneratorGrGenMeta.h"
+
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -31,7 +33,6 @@ using namespace std;
 
 #include "OpenInfraPlatform/ExpressBinding/Parser/node.h"
 #include "parser.hpp"
-
 
 extern int yyparse();
 extern FILE *yyin;
@@ -47,100 +48,105 @@ using namespace OpenInfraPlatform::ExpressBinding;
 #include "tclap/CmdLine.h"
 
 int main(int argc, char **argv) {
-    try {
-        buw::CmdLine cmd("oipExpress", ' ', "0.1");
+	try {
+		buw::CmdLine cmd("oipExpress", ' ', "0.1");
 
-        // get the unlabeled input argument from the command line
-        buw::UnlabeledValueArg<std::string> sourceFiles("i", "EXPRESS Schema file.", true, "./rectified", "string");
-        cmd.add(sourceFiles);
+		// get the unlabeled input argument from the command line
+		buw::UnlabeledValueArg<std::string> sourceFiles("i", "EXPRESS Schema file.", true, "./rectified", "string");
+		cmd.add(sourceFiles);
 
-        // get the labeled input argument '-o' specifying the target for output
-        buw::ValueArg<std::string> outputDirectory("o", "outputDir", "The output directory.", false, "", "string");
-        cmd.add(outputDirectory);
+		// get the labeled input argument '-o' specifying the target for output
+		buw::ValueArg<std::string> outputDirectory("o", "outputDir", "The output directory.", false, "", "string");
+		cmd.add(outputDirectory);
 
-        // Parse the args.
-        cmd.parse(argc, argv);
+		// Parse the args.
+ 		//cmd.parse(argc, argv);	// comment for debug
 
-        // open a file handle to a particular file:
+		// open a file handle to a particular file:
 
-        const char* filename = sourceFiles.getValue().c_str();
-        std::string outputDirectoryName = outputDirectory.getValue();
+		//const char *filename = sourceFiles.getValue().c_str();	// enable this line when cmd argument is present
+		const char *filename = "C://dev//oipExpress_build//Debug//IFC4x3_RC2.exp";
+		
+		std::string outputDirectoryName = outputDirectory.getValue();
+			   
+		
+		FILE *myfile = fopen(filename, "r");
+		// make sure it is valid:
+		if (!myfile) {
+			cout << "I can't open file!" << endl;
+			return -1;
+		}
+		// set flex to read from it instead of defaulting to STDIN:
+		yyin = myfile;
 
-        //std::string filename = "C:/dev/Neuer Ordner/IFC4x1_RC3.exp";
-        // std::string filename = "C:/dev/OpenInfraPlatform2/IfcAlignment1x1/schema/IFC4x1_RC3.exp";
+		// parse through the input until there is no more:
+		do {
+			yyparse();
+		} while (!feof(yyin));
 
-        FILE *myfile = fopen(filename, "r");
-        // make sure it is valid:
-        if (!myfile) {
-            cout << "I can't open file!" << endl;
-            return -1;
-        }
-        // set flex to read from it instead of defaulting to STDIN:
-        yyin = myfile;
+		std::ofstream ofs("test.txt", std::ofstream::out);
 
-        // parse through the input until there is no more:
-        do {
-            yyparse();
-        } while (!feof(yyin));
+		std::ostream &out = ofs; // std::cout;
 
-        std::ofstream ofs("test.txt", std::ofstream::out);
+		if (false) {
+			std::cout << "---------------------------" << std::endl;
+			Entity e = oip::Schema::getInstance().getEntityByName("IfcSIUnit");
 
-        std::ostream &out = ofs; // std::cout;
+			std::vector<EntityAttribute> attributes = oip::Schema::getInstance().getAllEntityAttributes(e);
+			for (int i = 0; i < attributes.size(); ++i) {
+				const EntityAttribute &attribute = attributes[i];
+				std::cout << attribute.getName() << " : " << attribute.type->toString();
 
-        if (false) {
-            std::cout << "---------------------------" << std::endl;
-            Entity e = oip::Schema::getInstance().getEntityByName("IfcSIUnit");
+				if (e.hasQualifiedAttribute(attribute.getName()))
+					std::cout << " (*)";
 
-            std::vector<EntityAttribute> attributes = oip::Schema::getInstance().getAllEntityAttributes(e);
-            for (int i = 0; i < attributes.size(); ++i) {
-                const EntityAttribute &attribute = attributes[i];
-                std::cout << attribute.getName() << " : " << attribute.type->toString();
+				std::cout << std::endl;
+			}
+		}
 
-                if (e.hasQualifiedAttribute(attribute.getName()))
-                    std::cout << " (*)";
+		enum class eGeneratorType { Echo, OIP, VBNet, CSharp, GrGenMeta };
 
-                std::cout << std::endl;
-            }
-        }
+		// eGeneratorType gt = eGeneratorType::OIP;
+		eGeneratorType gt = eGeneratorType::GrGenMeta;
 
-        enum class eGeneratorType { Echo, OIP, VBNet, CSharp };
+		switch (gt) {
+		case eGeneratorType::Echo: {
+			GeneratorEcho echo;
+			echo.generate(out, oip::Schema::getInstance());
+		} break;
 
-        eGeneratorType gt = eGeneratorType::OIP;
+		case eGeneratorType::OIP: {
+			GeneratorOIP cppgen(outputDirectoryName);
+			cppgen.generate(out, oip::Schema::getInstance());
+		} break;
 
-        switch (gt) {
-        case eGeneratorType::Echo: {
-            GeneratorEcho echo;
-            echo.generate(out, oip::Schema::getInstance());
-        } break;
+		case eGeneratorType::VBNet: {
+			GeneratorVBNet vbnetgen;
+			vbnetgen.generate(out, oip::Schema::getInstance());
+		} break;
 
-        case eGeneratorType::OIP: {
-            GeneratorOIP cppgen(outputDirectoryName);
-            cppgen.generate(out, oip::Schema::getInstance());
-        } break;
+		case eGeneratorType::CSharp: {
+			GeneratorCSharpNet vbnetgen;
+			vbnetgen.generate(out, oip::Schema::getInstance());
+		} break;
 
-        case eGeneratorType::VBNet: {
-            GeneratorVBNet vbnetgen;
-            vbnetgen.generate(out, oip::Schema::getInstance());
-        } break;
+		case eGeneratorType::GrGenMeta: {
+			GeneratorGrGenMeta grgenmetagen;
+			grgenmetagen.generate(out, oip::Schema::getInstance());
+		} break;
+		}
 
-        case eGeneratorType::CSharp: {
-            GeneratorCSharpNet vbnetgen;
-            vbnetgen.generate(out, oip::Schema::getInstance());
-        } break;
-        }
-
-        ofs.close();
-
-    } catch (std::exception &ex) {
-        std::cout << ex.what() << std::endl;
-    }
+		ofs.close();
+	} catch (std::exception &ex) {
+		std::cout << ex.what() << std::endl;
+	}
 }
 
 extern int line_num;
 
 void yyerror(const char *s) {
-    cout << "Parse error!  Message: " << s << endl;
-    cout << "Line number: " << line_num << endl;
-    // might as well halt now:
-    exit(-1);
+	cout << "Parse error!  Message: " << s << endl;
+	cout << "Line number: " << line_num << endl;
+	// might as well halt now:
+	exit(-1);
 }
