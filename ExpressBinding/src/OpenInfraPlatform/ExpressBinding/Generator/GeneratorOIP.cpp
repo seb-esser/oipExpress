@@ -25,14 +25,18 @@
 #include <Windows.h>
 #include <algorithm>
 #include <cassert>
-#include <experimental/filesystem>
+//#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <sstream>
 
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+
 OIP_NAMESPACE_OPENINFRAPLATFORM_EXPRESSBINDING_BEGIN
 
-namespace fs = std::experimental::filesystem;
+//namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 // https://stackoverflow.com/questions/1528298/get-path-of-executable
 std::string executable_path() {
