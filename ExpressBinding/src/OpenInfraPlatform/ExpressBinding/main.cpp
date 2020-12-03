@@ -50,9 +50,11 @@ int main(int argc, char **argv) {
     try {
         buw::CmdLine cmd("oipExpress", ' ', "0.1");
 
+        // get the unlabeled input argument from the command line
         buw::UnlabeledValueArg<std::string> sourceFiles("i", "EXPRESS Schema file.", true, "./rectified", "string");
         cmd.add(sourceFiles);
 
+        // get the labeled input argument '-o' specifying the target for output
         buw::ValueArg<std::string> outputDirectory("o", "outputDir", "The output directory.", false, "", "string");
         cmd.add(outputDirectory);
 
