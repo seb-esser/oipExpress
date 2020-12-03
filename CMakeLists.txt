@@ -67,9 +67,9 @@ if (WIN32)
 	set(FLEX_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/Tools/win_flex_bison-2.5.5/win_flex.exe)
 endif()
 
-set(BOOST_ROOT "C:\\thirdparty\\vs2015\\x64\\boost_1_63_0")
+set(BOOST_ROOT "C:\\thirdParty\\boost_1_74_0")
 
-find_package(Boost 1.65.1)
+find_package(Boost 1.74.0)
 find_package(BISON)
 find_package(FLEX)
 
