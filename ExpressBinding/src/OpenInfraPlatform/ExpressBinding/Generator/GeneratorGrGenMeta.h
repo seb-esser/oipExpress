@@ -8,9 +8,12 @@
 #include "OpenInfraPlatform/ExpressBinding/Generator/Generator.h"
 #include "OpenInfraPlatform/ExpressBinding/Meta/Schema.h"
 #include "OpenInfraPlatform/ExpressBinding/namespace.h"
+
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <boost/algorithm/string.hpp>
 
 OIP_NAMESPACE_OPENINFRAPLATFORM_EXPRESSBINDING_BEGIN
 
@@ -23,38 +26,81 @@ public:
 
 	//
 	void generate(std::ostream& out, OpenInfraPlatform::ExpressBinding::Schema& schema) {
+
+		out << "// GrGen meta model for " << schema.getName() << "\n";
+
 		for (int i = 0; i < schema.getEntityCount(); i++) {
 			auto& entity = schema.getEntityByIndex(i);
-			std::cout << i << "\t" << entity.getName() << "\n";
 
+			// is abstract entity?
+			// auto isAbstract = entity
+			
+			std::cout << i << "\t" << entity.getName() << "\n";
+			auto entityName = entity.getName();
+			auto parentEntity = entity.getSupertype();
+			
+			out << "node class " << entity.getName(); 
+
+			if (parentEntity != "") {
+				out << " extends " << entity.getSupertype();
+			}
+						
 			auto counter = entity.getAttributeCount();
 
-			for (int j = 0; j < counter; j++) {
-				auto attrName = entity.getAttribute(j).getName();
-				std::cout << "\t" << attrName << " ";
+			// no attributes defined on this class inheritance level
+			if (entity.getAttributeCount() == 0) {
+				out << "; \n";
+			}
+			else {
+				// open parenthesis for node class attributes
+				out << "{ \n";
 				
-				auto attrDataType = entity.getAttribute(j).type;
+				for (int j = 0; j < counter; j++) {
+					// get attribute name
+					auto attrName = entity.getAttribute(j).getName();				
 
-				switch (attrDataType->getType()) {
-				case eEntityAttributeParamterType::Simple: {
-					std::cout << "simple Datatype \n";
-				} break;
-
-					case eEntityAttributeParamterType::TypeNamed: {
-					std::cout << "typeNamed Datatype \n";
-				} break;
-
-					case eEntityAttributeParamterType::eGeneralizedType: {
-					std::cout << "generalized Type \n";
-				} break;
+					// get datatype
+					auto attrDataType = entity.getAttribute(j).type;							
 					
-				}				
+					switch (attrDataType->getType()) {
+						
+					case eEntityAttributeParamterType::Simple: {
+						//std::cout << "simple Datatype \n";
+						auto myType= attrDataType->toString();
+						myType = ToLower(myType);
+						
+						// write to gm file
+						out << "\t" << attrName << ": "<< myType << "; \n";
+						std::cout << "\t " << attrName << ": " << myType << "; \n";
+					} break;
+
+						case eEntityAttributeParamterType::TypeNamed: {
+						//std::cout << "\t typeNamed Datatype \n";
+					} break;
+
+						case eEntityAttributeParamterType::eGeneralizedType: {
+						//std::cout << "\t generalized Type \n";
+					} break;
+						
+					}
+				}
+
+				
+				// close parenthesis for node class attributes
+				out << "} \n \n";
  			}
+			
 		}
 	}
 
 private:
-	std::string my_string = "null";
+	
+
+	std::string ToLower(std::string text) {
+		boost::algorithm::to_lower(text);
+		return text;
+	}
+	
 };
 
 OIP_NAMESPACE_OPENINFRAPLATFORM_EXPRESSBINDING_END
