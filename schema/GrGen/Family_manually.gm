@@ -1,0 +1,11 @@
+
+abstract node class Person{
+    name: string;
+}
+
+node class Female extends Person;
+node class Male extends Person;
+
+
+edge class isMotherOf{}
+edge class isFatherOf{}

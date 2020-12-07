@@ -1,0 +1,16 @@
+new graph Family_manually "FamilyGraph"
+
+new :Male($=dad, name="MaxMustermann")
+new :Female($=mom, name="ErikaMusterfrau")
+
+new: Male($=child1, name="Sohn1")
+new: Female($=child2, name="Sohn1")
+
+
+new @("dad")-:isFatherOf-> @("child1")
+new @("dad")-:isFatherOf-> @("child2")
+
+new @("mom")-:isMotherOf-> @("child1")
+new @("mom")-:isMotherOf-> @("child2")
+
+show graph ycomp
